@@ -32,12 +32,20 @@ func main() {
 	correct := 0
 	for i, p := range problems {
 		fmt.Printf("Question #%d:%s= ", i+1, p.question)
-		var answer string
-		fmt.Scanf("%s\n", &answer)
-		if p.answer == answer {
-			correct++
-		} else {
-			fmt.Println("Incorrect answer")
+		answerChan := make(chan string)
+		go func() {
+			var answer string
+			fmt.Scanf("%s\n", &answer)
+			answerChan <- answer
+		}()
+		select {
+		case <-timer.C:
+			fmt.Printf("Your final score is: %d/%d", correct, len(problems))
+			return
+		case answer := <-answerChan:
+			if answer == p.answer {
+				correct++
+			}
 		}
 	}
 	fmt.Printf("Your final score is: %d/%d", correct, len(problems))
